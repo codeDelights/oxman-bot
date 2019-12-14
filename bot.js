@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
-const parser = require('./parser');
+const parser = require('./parser.js');
 
 require('dotenv').config();
 
@@ -15,10 +15,11 @@ if (process.env.NODE_ENV === 'production') {
     bot = new TelegramBot(token, {polling: true});
 }
 
-bot.onText(/\/w (.+)/, (msg, match) => {
+bot.onText(/(.+)/, (msg, match) => {
     console.log(msg);
-    console.log(match);
+    /* console.log(match); */
     const word = match[1];
+    const chatId = msg.chat.id;
     axios
         .get(`${process.env.OXFORD_API_URL}/entries/en-gb/${word}`, {
             params: {
@@ -30,6 +31,12 @@ bot.onText(/\/w (.+)/, (msg, match) => {
                 app_key: process.env.OXFORD_APP_KEY
             }
         })
-        .then(response => console.log(JSON.stringify(response.data.results)))
-        .catch(err => console.log(err));
+        .then(response => {
+            const parsedHtml = parser(response.data);
+            bot.sendMessage(chatId, parsedHtml, { parse_mode: 'HTML' });
+        })
+        .catch(error => {
+            const errorText = error.response.status === 404 ? `No definition found for the word: <b>${word}</b>` : `<b>An error occured, please try again later</b>`;
+            bot.sendMessage(chatId, errorText, { parse_mode:'HTML'})
+        });
 });
