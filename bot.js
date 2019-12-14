@@ -8,20 +8,13 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const app = express();
- 
-app.use(bodyParser.json());
- 
-app.listen(process.env.PORT);
-
-
-app.post('/' + bot.token, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
-});
 
 const token = process.env.TELEGRAM_TOKEN;
 
 let bot;
+
+app.use(bodyParser.json());
+
 
 if (process.env.NODE_ENV === 'production') {
     bot = new TelegramBot(token);
@@ -29,6 +22,13 @@ if (process.env.NODE_ENV === 'production') {
 } else {
     bot = new TelegramBot(token, {polling: true});
 }
+
+app.post('/' + bot.token, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+ 
+app.listen(process.env.PORT);
 
 bot.onText(/(.+)/, (msg, match) => {
     console.log(msg);
