@@ -2,7 +2,22 @@ const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const parser = require('./parser.js');
 
+const express = require('express')
+const bodyParser = require('body-parser');
+
 require('dotenv').config();
+
+const app = express();
+ 
+app.use(bodyParser.json());
+ 
+app.listen(process.env.PORT);
+
+
+app.post('/' + bot.token, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
 
 const token = process.env.TELEGRAM_TOKEN;
 
